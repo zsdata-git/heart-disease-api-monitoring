@@ -1,19 +1,21 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
 class PatientData(BaseModel):
     Age: int = Field(..., ge=0, le=120)
-    Sex: str
-    ChestPainType: str
+    Sex: Literal["M", "F"]
+    ChestPainType: Literal["ATA", "NAP", "ASY", "TA"]
     RestingBP: float = Field(..., gt=0)
     Cholesterol: float = Field(..., ge=0)
-    FastingBS: int = Field(..., ge=0, le=1)
-    RestingECG: str
+    FastingBS: Literal[0, 1]
+    RestingECG: Literal["Normal", "ST", "LVH"]
     MaxHR: float = Field(..., gt=0)
-    ExerciseAngina: str
+    ExerciseAngina: Literal["Y", "N"]
     Oldpeak: float
-    ST_Slope: str
-    Cholesterol_missing: int = Field(..., ge=0, le=1)
+    ST_Slope: Literal["Up", "Flat", "Down"]
+    Cholesterol_missing: Literal[0, 1]
 
 
 class PredictionResponse(BaseModel):
