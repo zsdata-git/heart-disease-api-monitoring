@@ -1,4 +1,3 @@
-# Heart Disease API Monitoring
 ---
 title: Heart Disease API Monitoring
 emoji: ❤️
@@ -6,7 +5,10 @@ colorFrom: pink
 colorTo: red
 sdk: docker
 app_port: 8000
+pinned: false
 ---
+
+# Heart Disease API Monitoring
 
 ## Contexte
 
