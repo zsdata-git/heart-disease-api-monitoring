@@ -14,7 +14,6 @@ import joblib
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-
 MODEL_PATH = BASE_DIR / "models" / "best_rf_model.joblib"
 THRESHOLD_PATH = BASE_DIR / "models" / "threshold.json"
 
@@ -24,5 +23,5 @@ def load_model():
 
 
 def load_threshold():
-    with open(THRESHOLD_PATH, "r") as f:
-        return json.load(f)["threshold"]
+    with open(THRESHOLD_PATH, "r", encoding="utf-8") as file:
+        return json.load(file)["threshold"]

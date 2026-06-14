@@ -1,0 +1,52 @@
+name: CI/CD API
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Run API and model tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run tests
+        run: uv run pytest
+
+  docker-build:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t heart-disease-api .
+
+  deploy-simulated:
+    name: Simulate deployment
+    runs-on: ubuntu-latest
+    needs: docker-build
+
+    steps:
+      - name: Simulated deployment
+        run: |
+          echo "Docker image built successfully."
+          echo "Deployment step simulated successfully."
+          echo "Ready for deployment on Hugging Face Spaces or Cloud Run."
