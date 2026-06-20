@@ -35,7 +35,13 @@ L'objectif est de transformer un modèle de scoring validé en un service exploi
 
 ```text
 heart-disease-api-monitoring/
-
+|
+|
+├── .github/ 
+│ └── workflows/ 
+│ └── ci.yml
+|
+|
 ├── app/
 │   ├── main.py
 │   ├── model_loader.py
@@ -46,9 +52,11 @@ heart-disease-api-monitoring/
 │   ├── best_rf_model.joblib
 │   └── threshold.json
 │
-├── data/
-│   ├── reference/
-│   └── production/
+├── data/ 
+|    ├── production/ 
+│    └── reference/ 
+│        ├── heart_cleaning.csv 
+│        └── patients_reference.csv
 │
 ├── tests/
 │   ├── test_model.py
@@ -59,6 +67,7 @@ heart-disease-api-monitoring/
 ├── reports/
 │
 ├── Dockerfile
+├── create_patient_ids.py
 ├── pyproject.toml
 ├── uv.lock
 └── README.md
@@ -181,26 +190,152 @@ feature/cicd
 
 ---
 
-## État actuel
-
-✔ Structure du projet créée
-
-✔ Dépôt Git initialisé
-
-✔ Artefacts récupérés
-
-✔ Chargement du modèle validé
-
-✔ Environnement reproductible avec UV
-
-✔ Base prête pour l'implémentation de l'API FastAPI
+## Étape 2 - Déploiement du modèle 
 
 ---
 
-## Prochaines étapes
+### Lancer l'API
 
-- Développement de l'API REST
-- Conteneurisation Docker
-- Mise en place du monitoring
-- Détection du Data Drift
-- Automatisation CI/CD
+```bash
+uvicorn app.main:app --reload
+```
+
+Documentation Swagger :
+
+http://127.0.0.1:8000/docs
+
+
+---
+
+### Endpoints disponibles
+
+- Vérification de l'état de l'API
+GET /health
+
+Exemple de réponse :
+
+{
+  "status": "ok",
+  "model_loaded": true
+}
+
+- Prédiction à partir de données utilisateur
+POST /predict
+
+Exemple de requête :
+
+{
+  "Age": 48,
+  "Sex": "M",
+  "ChestPainType": "ASY",
+  "RestingBP": 130,
+  "Cholesterol": 245,
+  "FastingBS": 0,
+  "RestingECG": "Normal",
+  "MaxHR": 140,
+  "ExerciseAngina": "Y",
+  "Oldpeak": 1.2,
+  "ST_Slope": "Flat",
+  "Cholesterol_missing": 0
+}
+
+Exemple de réponse :
+
+{
+  "probability": 0.91,
+  "threshold": 0.477,
+  "prediction": 1,
+  "label": "Maladie cardiaque détectée"
+}
+
+- Prédiction à partir d'un identifiant patient
+GET /predict/PAT-0001
+
+Cette route récupère les données du patient depuis le fichier de référence puis exécute automatiquement la prédiction.
+
+---
+
+### Docker
+
+Construire l'image
+```bash
+docker build -t heart-disease-api
+```
+
+Lancer le conteneur
+```bash
+docker run -p 8000:8000 heart-disease-api
+```
+Documentation Swagger :
+
+http://localhost:8000/docs
+
+---
+
+### Tests
+
+Exécuter tous les tests :
+```bash
+pytest
+```
+
+Résultat attendu : 5 passed
+
+Les tests couvrent :
+- chargement du modèle
+- endpoint /health
+- endpoint /predict
+- endpoint /predict/{patient_id}
+- validation des données d'entrée
+
+---
+
+### Pipeline CI/CD
+
+Une pipeline GitHub Actions est exécutée automatiquement à chaque push sur la branche principale.
+
+Étapes exécutées :
+
+Exécution des tests automatisés.
+Construction de l'image Docker.
+Simulation du déploiement.
+
+Le workflow est défini dans :
+
+.github/workflows/ci.yml
+
+---
+
+### Déploiement 
+
+- GitHub
+
+Repository :
+https://github.com/zsdata-git/heart-disease-api-monitoring
+
+- Hugging Face Space
+
+Application déployée :
+https://hayette-heart-disease-api.hf.space
+
+Documentation interactive :
+https://hayette-heart-disease-api.hf.space/docs
+
+---
+
+## Technologies utilisées
+
+Python 3.12
+FastAPI
+Uvicorn
+Scikit-Learn
+Pandas
+Pytest
+Docker
+GitHub Actions
+Hugging Face Spaces
+
+---
+
+## Auteur 
+Projet réalisé par Hayette dans le cadre d'un projet de déploiement et monitoring d'un modèle de Machine Learning.
