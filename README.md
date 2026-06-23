@@ -296,9 +296,9 @@ Une pipeline GitHub Actions est exécutée automatiquement à chaque push sur la
 
 Étapes exécutées :
 
-Exécution des tests automatisés.
-Construction de l'image Docker.
-Simulation du déploiement.
+- Exécution des tests automatisés.
+- Construction de l'image Docker.
+- Simulation du déploiement.
 
 Le workflow est défini dans :
 
@@ -325,15 +325,15 @@ https://hayette-heart-disease-api.hf.space/docs
 
 ## Technologies utilisées
 
-Python 3.12
-FastAPI
-Uvicorn
-Scikit-Learn
-Pandas
-Pytest
-Docker
-GitHub Actions
-Hugging Face Spaces
+- Python 3.12
+- FastAPI
+- Uvicorn
+- Scikit-Learn
+- Pandas
+- Pytest
+- Docker
+- GitHub Actions
+- Hugging Face Spaces
 
 ---
 
