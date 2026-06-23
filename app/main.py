@@ -9,6 +9,7 @@ import time
 from app.monitoring import log_prediction
 
 from app.monitoring import LOG_PATH
+import json
 
 app = FastAPI(
     title="Heart Disease Prediction API",
@@ -78,24 +79,16 @@ def predict_by_patient_id(patient_id: str):
 
 @app.get("/monitoring/logs")
 def get_prediction_logs(limit: int = 100):
-    try:
-        if not LOG_PATH.exists():
-            return {"count": 0, "logs": [], "message": "No production logs found yet."}
+    if not LOG_PATH.exists():
+        return {"count": 0, "logs": [], "message": "No production logs found yet."}
 
-        logs_df = pd.read_csv(LOG_PATH).tail(limit)
+    logs_df = pd.read_csv(LOG_PATH).tail(limit)
 
-        # éviter les erreurs JSON avec NaN
-        logs_df = logs_df.where(pd.notnull(logs_df), None)
+    logs_json = json.loads(
+        logs_df.to_json(orient="records", date_format="iso")
+    )
 
-        return {
-            "count": len(logs_df),
-            "logs": logs_df.to_dict(orient="records"),
-        }
-
-    except Exception as e:
-        return {
-            "count": 0,
-            "logs": [],
-            "error": str(e),
-        }
-    
+    return {
+        "count": len(logs_json),
+        "logs": logs_json,
+    }
