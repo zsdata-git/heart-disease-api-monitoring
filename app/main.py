@@ -78,16 +78,24 @@ def predict_by_patient_id(patient_id: str):
 
 @app.get("/monitoring/logs")
 def get_prediction_logs(limit: int = 100):
-    if not LOG_PATH.exists():
+    try:
+        if not LOG_PATH.exists():
+            return {"count": 0, "logs": [], "message": "No production logs found yet."}
+
+        logs_df = pd.read_csv(LOG_PATH).tail(limit)
+
+        # éviter les erreurs JSON avec NaN
+        logs_df = logs_df.where(pd.notnull(logs_df), None)
+
         return {
-            "message": "No production logs found yet.",
-            "logs": []
+            "count": len(logs_df),
+            "logs": logs_df.to_dict(orient="records"),
         }
 
-    logs_df = pd.read_csv(LOG_PATH)
-    logs_df = logs_df.tail(limit)
-
-    return {
-        "count": len(logs_df),
-        "logs": logs_df.to_dict(orient="records")
-    }
+    except Exception as e:
+        return {
+            "count": 0,
+            "logs": [],
+            "error": str(e),
+        }
+    
