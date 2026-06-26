@@ -98,19 +98,22 @@ def save_to_supabase(log_row: dict) -> None:
     supabase.table(TABLE_NAME).insert(db_row).execute()
 
 
+
 def save_log(log_row: dict) -> None:
     """
     Sauvegarde le log.
-    - Si Supabase est configuré : stockage en base.
-    - Sinon : fallback local en CSV.
+    Si Supabase échoue, on bascule en CSV local pour éviter de casser l'API.
     """
-
     supabase = get_supabase_client()
 
     if supabase is not None:
-        save_to_supabase(log_row)
-    else:
-        save_to_csv(log_row)
+        try:
+            save_to_supabase(log_row)
+            return
+        except Exception as e:
+            print(f"Erreur Supabase, fallback CSV : {e}")
+
+    save_to_csv(log_row)    
 
 
 def log_prediction(
