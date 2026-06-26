@@ -6,7 +6,7 @@ from app.model_loader import load_model, load_threshold
 from app.schemas import PatientData, PredictionResponse
 
 import time
-from app.monitoring import log_prediction
+from app.monitoring import log_prediction, read_logs, logs_to_json
 
 from app.monitoring import LOG_PATH
 import json
@@ -79,16 +79,9 @@ def predict_by_patient_id(patient_id: str):
 
 @app.get("/monitoring/logs")
 def get_prediction_logs(limit: int = 100):
-    if not LOG_PATH.exists():
-        return {"count": 0, "logs": [], "message": "No production logs found yet."}
-
-    logs_df = pd.read_csv(LOG_PATH).tail(limit)
-
-    logs_json = json.loads(
-        logs_df.to_json(orient="records", date_format="iso")
-    )
+    logs_df = read_logs(limit=limit)
 
     return {
-        "count": len(logs_json),
-        "logs": logs_json,
+        "count": len(logs_df),
+        "logs": logs_to_json(logs_df),
     }
