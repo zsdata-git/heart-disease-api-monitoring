@@ -25,3 +25,7 @@ data/production/
 # OS / editor
 .DS_Store
 .vscode/
+
+# Production logs
+data/production/*.csv
+data/production/*.json
