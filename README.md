@@ -35,39 +35,38 @@ L'objectif est de transformer un modèle de scoring validé en un service exploi
 
 ```text
 heart-disease-api-monitoring/
-|
-|
-├── .github/ 
-│ └── workflows/ 
-│ └── ci.yml
-|
-|
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
 ├── app/
+│   ├── dashboard.py
 │   ├── main.py
 │   ├── model_loader.py
 │   ├── monitoring.py
 │   └── schemas.py
 │
+├── data/
+|   └── production/
+│       └── prediction_logs.csv
+│   └── reference/
+│       ├── heart_cleaning.csv
+│       └── patients_reference.csv
+│
 ├── models/
 │   ├── best_rf_model.joblib
 │   └── threshold.json
 │
-├── data/ 
-|    ├── production/ 
-│    └── reference/ 
-│        ├── heart_cleaning.csv 
-│        └── patients_reference.csv
-│
-├── tests/
-│   ├── test_model.py
-│   └── test_api.py
-│
 ├── notebooks/
+│   └── monitoring_analysis.ipynb
 │
 ├── reports/
+│   └── data_drift_report.html
+│
+├── tests/
 │
 ├── Dockerfile
-├── create_patient_ids.py
 ├── pyproject.toml
 ├── uv.lock
 └── README.md
@@ -128,10 +127,13 @@ python -m ipykernel install --user \
 - fastapi
 - uvicorn
 - pandas
+- matplotlib
 - scikit-learn
 - joblib
 - evidently
 - pytest
+- streamlit
+- supabase 
 
 Installation :
 
@@ -194,7 +196,7 @@ feature/cicd
 
 ---
 
-### Lancer l'API
+### Lancer l'API localement
 
 ```bash
 uvicorn app.main:app --reload
@@ -210,7 +212,9 @@ http://127.0.0.1:8000/docs
 ### Endpoints disponibles
 
 - Vérification de l'état de l'API
+```
 GET /health
+```
 
 Exemple de réponse :
 
@@ -220,7 +224,9 @@ Exemple de réponse :
 }
 
 - Prédiction à partir de données utilisateur
+```
 POST /predict
+```
 
 Exemple de requête :
 
@@ -249,9 +255,21 @@ Exemple de réponse :
 }
 
 - Prédiction à partir d'un identifiant patient
+```
 GET /predict/PAT-0001
+```
 
 Cette route récupère les données du patient depuis le fichier de référence puis exécute automatiquement la prédiction.
+
+- Monitoring
+
+```
+GET /monitoring/logs
+```
+
+Retourne les prédictions enregistrées en production.
+
+Les logs sont désormais stockés dans **Supabase** et ne sont plus lus depuis un fichier CSV local.
 
 ---
 
@@ -306,7 +324,7 @@ Le workflow est défini dans :
 
 ---
 
-### Déploiement 
+### Déploiement sur HF
 
 - GitHub
 
@@ -323,6 +341,82 @@ https://hayette-heart-disease-api.hf.space/docs
 
 ---
 
+# Monitoring des prédictions
+
+Chaque prédiction réalisée par l'API est automatiquement enregistrée dans une base de données Supabase.
+
+Les informations stockées sont notamment :
+
+- timestamp
+- endpoint appelé
+- probabilité prédite
+- seuil de décision
+- classe prédite
+- libellé
+- temps de réponse
+- code HTTP
+- variables d'entrée du patient
+
+Ces données servent au suivi de la qualité du modèle en production ainsi qu'à la détection d'éventuelles dérives.
+
+---
+
+# Base de données (Supabase)
+
+Les logs de production sont stockés dans une base PostgreSQL hébergée sur Supabase.
+
+Cette solution permet :
+
+- le stockage persistant des prédictions
+- le suivi des performances en production
+- l'alimentation du dashboard Streamlit
+- l'analyse de Data Drift avec Evidently AI
+
+Les identifiants Supabase sont stockés sous forme de secrets sur Hugging Face.
+
+---
+
+# Dashboard Streamlit
+
+Le projet comprend un tableau de bord interactif développé avec Streamlit.
+
+Il permet de visualiser :
+
+- le nombre de prédictions
+- la latence moyenne
+- le taux d'erreur
+- la distribution des classes
+- la distribution des probabilités
+- les dernières prédictions
+- le rapport Evidently
+
+Lancement :
+
+```bash
+streamlit run app/dashboard.py
+```
+
+---
+
+# Détection de Data Drift
+
+Le notebook `monitoring_analysis.ipynb` compare automatiquement :
+
+- les données de référence utilisées pour entraîner le modèle
+- les données de production récupérées depuis Supabase
+
+L'analyse est réalisée avec Evidently AI.
+
+Le rapport HTML généré est enregistré dans :
+
+```
+reports/data_drift_report.html
+```
+
+Ce rapport est également consultable directement depuis le dashboard Streamlit.
+
+---
+
 ## Technologies utilisées
 
 - Python 3.12
@@ -330,7 +424,10 @@ https://hayette-heart-disease-api.hf.space/docs
 - Uvicorn
 - Scikit-Learn
 - Pandas
-- Pytest
+- NumPy
+- Streamlit
+- Evidently AI
+- Supabase
 - Docker
 - GitHub Actions
 - Hugging Face Spaces
