@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
+import os
+from supabase import create_client
+
+from dotenv import load_dotenv
+load_dotenv()
 
 st.set_page_config(
     page_title="Heart Disease Monitoring",
@@ -27,8 +32,24 @@ st.markdown(
 )
 
 
-@st.cache_data
+@st.cache_data(ttl=60)
 def load_logs(path: Path) -> pd.DataFrame:
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_KEY")
+
+    if supabase_url and supabase_key:
+        supabase = create_client(supabase_url, supabase_key)
+
+        response = (
+            supabase.table("prediction_logs")
+            .select("*")
+            .order("id", desc=True)
+            .limit(1000)
+            .execute()
+        )
+
+        return pd.DataFrame(response.data)
+
     return pd.read_csv(path)
 
 
