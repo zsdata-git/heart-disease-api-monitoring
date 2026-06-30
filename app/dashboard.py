@@ -72,16 +72,14 @@ st.header("📊 Indicateurs clés")
 nb_calls = len(df)
 avg_latency = df["latency_ms"].mean()
 max_latency = df["latency_ms"].max()
-error_rate = (df["status_code"] != 200).mean() * 100
 positive_rate = df["prediction"].mean() * 100
 
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4 = st.columns(4)
 
 col1.metric("Nombre d'appels", f"{nb_calls}")
 col2.metric("Latence moyenne", f"{avg_latency:.2f} ms")
 col3.metric("Latence max", f"{max_latency:.2f} ms")
-col4.metric("Taux d'erreur", f"{error_rate:.2f}%")
-col5.metric("Prédictions positives", f"{positive_rate:.2f}%")
+col4.metric("Prédictions positives", f"{positive_rate:.2f}%")
 
 
 # =========================
